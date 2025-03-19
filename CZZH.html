@@ -1,0 +1,195 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <title>词组组合生成器</title>
+    <style>
+        /* 引入行书字体 */
+        @import url('https://fonts.googleapis.com/css2?family=Maobi&display=swap');
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden; /* 防止滚动条 */
+        }
+        /* 潇然工具包 - 页面左上角 */
+        .page-logo {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            font-size: 24px; /* 与词组组合生成器一致 */
+            font-weight: bold;
+            color: #00ffcc; /* 与词组组合生成器一致 */
+            font-family: 'Maobi', cursive; /* 行书字体 */
+            letter-spacing: 1.5px;
+        }
+        .container {
+            background: #2d2d2d;
+            border-radius: 12px;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+            padding: 24px;
+            max-width: 800px;
+            width: 100%;
+            margin-top: -40px; /* 位置上移 */
+        }
+        h2 {
+            color: #00ffcc;
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-align: center;
+        }
+        .input-group {
+            display: flex;
+            align-items: center;
+            margin-bottom: 16px;
+            padding: 12px;
+            border: 1px solid #444;
+            border-radius: 8px;
+            background: #3a3a3a;
+        }
+        .input-group input {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #555;
+            border-radius: 4px;
+            font-size: 14px;
+            background: #2d2d2d;
+            color: #e0e0e0;
+        }
+        .input-group button {
+            background: #ff4d4d;
+            color: white;
+            border: none;
+            padding: 8px 12px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+            margin-left: 8px;
+        }
+        .input-group button:hover {
+            background: #e60000;
+        }
+        .group-controls {
+            display: flex;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 20px;
+        }
+        .group-controls button {
+            background: #00ccff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .group-controls button:hover {
+            background: #0099cc;
+        }
+        #output {
+            white-space: pre-wrap;
+            padding: 16px;
+            background: #3a3a3a;
+            border: 1px solid #444;
+            border-radius: 8px;
+            margin-top: 20px;
+            font-family: 'Courier New', Courier, monospace;
+            font-size: 14px;
+            color: #00ffcc;
+            display: none; /* 初始隐藏 */
+        }
+    </style>
+</head>
+<body>
+    <!-- 页面左上角 - 潇然工具包 -->
+    <div class="page-logo">潇然工具包</div>
+
+    <div class="container">
+        <h2>词组组合生成器</h2>
+        
+        <div id="inputGroups">
+            <div class="input-group">
+                <input type="text" placeholder="输入词组，用逗号分隔（例如：a,b,c 或 红色，蓝色，绿色）">
+                <button onclick="removeGroup(this)">删除</button>
+            </div>
+        </div>
+
+        <div class="group-controls">
+            <button onclick="addGroup()">添加新词组组</button>
+            <button onclick="generate()">生成组合</button>
+            <button onclick="copyOutput()">复制结果</button>
+        </div>
+
+        <div id="output"></div>
+    </div>
+
+    <script>
+        // 添加新输入组
+        function addGroup() {
+            const div = document.createElement('div');
+            div.className = 'input-group';
+            div.innerHTML = `
+                <input type="text" placeholder="输入词组，用逗号分隔">
+                <button onclick="removeGroup(this)">删除</button>
+            `;
+            document.getElementById('inputGroups').appendChild(div);
+        }
+
+        // 删除输入组
+        function removeGroup(btn) {
+            btn.parentElement.remove();
+        }
+
+        // 生成组合
+        function generate() {
+            const inputGroups = Array.from(document.querySelectorAll('.input-group input'))
+                .map(input => 
+                    input.value
+                        .split(/[，,]/) // 支持中英文逗号
+                        .map(s => s.trim()) // 清理空格
+                        .filter(Boolean) // 过滤空值
+                )
+                .filter(group => group.length > 0);
+
+            if (inputGroups.length === 0) {
+                alert('请至少输入一组有效词组！');
+                return;
+            }
+
+            // 生成所有组合
+            let combinations = inputGroups.reduce((acc, curr) => {
+                if (acc.length === 0) return curr.map(item => [item]);
+                return acc.flatMap(combo => curr.map(item => [...combo, item]));
+            }, []);
+
+            // 将组合拼接为字符串
+            combinations = combinations.map(items => items.join(' '));
+
+            // 显示结果
+            const output = combinations.join('\n');
+            document.getElementById('output').textContent = output;
+            document.getElementById('output').style.display = 'block'; // 显示结果框
+        }
+
+        // 复制结果
+        function copyOutput() {
+            const textarea = document.createElement('textarea');
+            textarea.value = document.getElementById('output').textContent;
+            document.body.appendChild(textarea);
+            textarea.select();
+            document.execCommand('copy');
+            document.body.removeChild(textarea);
+            alert('已复制到剪贴板！');
+        }
+    </script>
+</body>
+</html>
