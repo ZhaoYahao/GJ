@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>潇然工具包 - 词组组合生成器</title>
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+SC:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Noto Sans SC', sans-serif;
+        }
+
+        body {
+            background-color: #1a1a1a;
+            color: #e0e0e0;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        /* 头部独立在容器外 */
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 30px;
+        }
+
+        .logo {
+            font-size: 24px;
+            font-weight: 500;
+            color: #4CAF50;
+            letter-spacing: 2px;
+        }
+
+        .mode-toggle {
+            background: #333;
+            border: none;
+            color: #fff;
+            padding: 8px 16px;
+            border-radius: 4px;
+            cursor: pointer;
+            transition: 0.3s;
+        }
+
+        .mode-toggle:hover {
+            background: #444;
+        }
+
+        .main-container {
+            background: #2a2a2a;
+            border-radius: 12px;
+            padding: 30px 40px;
+            margin: 20px auto;
+            max-width: 900px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.3);
+        }
+
+        .section-title {
+            text-align: center;
+            font-size: 28px;
+            color: #4CAF50;
+            margin-bottom: 25px;
+            padding-bottom: 15px;
+            border-bottom: 2px solid #4CAF50;
+            letter-spacing: 2px;
+        }
+
+        .input-container {
+            margin: 20px 0;
+            width: 100%;
+        }
+
+        .vertical-mode {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        .horizontal-mode {
+            display: flex;
+            gap: 15px;
+            width: 100%;
+        }
+
+        .input-box {
+            background: #333;
+            border: 1px solid #444;
+            color: #fff;
+            padding: 10px;
+            border-radius: 4px;
+            resize: vertical;
+        }
+
+        .horizontal-mode .input-box {
+            flex: 1;
+            min-width: 120px;
+            height: 150px;
+        }
+
+        .error-message {
+            color: #ff4444;
+            font-size: 12px;
+            margin-top: 5px;
+            display: none;
+        }
+
+        .input-error {
+            border-color: #ff4444 !important;
+        }
+
+        /* 统一按钮样式 */
+        .action-btn {
+            border: none;
+            color: white;
+            padding: 12px 24px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: 0.3s;
+            width: 100%;
+            text-align: center;
+            display: block;
+            margin: 15px 0;
+        }
+
+        .generate-btn {
+            background: #2196F3;
+        }
+
+        .generate-btn:hover {
+            background: #42A5F5;
+        }
+
+        .generate-btn:disabled {
+            background: #616161;
+            cursor: not-allowed;
+        }
+
+        .copy-btn {
+            background: #4CAF50;
+            margin-top: 20px;
+        }
+
+        .copy-btn:hover {
+            background: #66BB6A;
+        }
+
+        .result-area {
+            margin-top: 20px;
+            background: #333;
+            padding: 15px;
+            border-radius: 4px;
+            display: none;
+        }
+
+        #resultOutput {
+            white-space: pre-wrap;
+            word-break: break-all;
+        }
+
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #333;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #666;
+            border-radius: 4px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <!-- 头部移出主容器 -->
+        <div class="header">
+            <div class="logo">潇然工具包</div>
+            <button class="mode-toggle" onclick="toggleMode()">切换视图</button>
+        </div>
+
+        <div class="main-container">
+            <h2 class="section-title">词组组合生成器</h2>
+
+            <div id="verticalInputs" class="vertical-mode input-container">
+                <textarea class="input-box" placeholder="词组用逗号分隔（如：红色,蓝色,黄色）" rows="2" oninput="validateInput(this, 'vertical')"></textarea>
+                <textarea class="input-box" placeholder="词组用逗号分隔（如：红色,蓝色,黄色）" rows="2" oninput="validateInput(this, 'vertical')"></textarea>
+                <textarea class="input-box" placeholder="词组用逗号分隔（如：红色,蓝色,黄色）" rows="2" oninput="validateInput(this, 'vertical')"></textarea>
+                <textarea class="input-box" placeholder="词组用逗号分隔（如：红色,蓝色,黄色）" rows="2" oninput="validateInput(this, 'vertical')"></textarea>
+                <textarea class="input-box" placeholder="词组用逗号分隔（如：红色,蓝色,黄色）" rows="2" oninput="validateInput(this, 'vertical')"></textarea>
+            </div>
+
+            <div id="horizontalInputs" class="horizontal-mode input-container" style="display: none;">
+                <textarea class="input-box" placeholder="每行一个词组" rows="6" oninput="validateInput(this, 'horizontal')"></textarea>
+                <textarea class="input-box" placeholder="每行一个词组" rows="6" oninput="validateInput(this, 'horizontal')"></textarea>
+                <textarea class="input-box" placeholder="每行一个词组" rows="6" oninput="validateInput(this, 'horizontal')"></textarea>
+                <textarea class="input-box" placeholder="每行一个词组" rows="6" oninput="validateInput(this, 'horizontal')"></textarea>
+                <textarea class="input-box" placeholder="每行一个词组" rows="6" oninput="validateInput(this, 'horizontal')"></textarea>
+            </div>
+
+            <div id="globalError" class="error-message"></div>
+            <button class="action-btn generate-btn" onclick="handleGenerate()" id="generateBtn" disabled>生成组合</button>
+            
+            <div class="result-area">
+                <pre id="resultOutput"></pre>
+                <button class="action-btn copy-btn" onclick="copyResults()">复制结果</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // JavaScript部分保持不变，同前一个版本
+        let currentMode = 'vertical';
+        let inputCache = {};
+
+        function toggleMode() {
+            const vertical = document.getElementById('verticalInputs');
+            const horizontal = document.getElementById('horizontalInputs');
+            
+            saveToCache(currentMode);
+            currentMode = currentMode === 'vertical' ? 'horizontal' : 'vertical';
+            vertical.style.display = currentMode === 'vertical' ? 'flex' : 'none';
+            horizontal.style.display = currentMode === 'horizontal' ? 'flex' : 'none';
+            loadFromCache(currentMode);
+            
+            document.querySelector('.result-area').style.display = 'none';
+            validateAll();
+        }
+
+        function saveToCache(mode) {
+            inputCache[mode] = Array.from(document.querySelectorAll(`#${mode}Inputs textarea`)).map(t => t.value);
+        }
+
+        function loadFromCache(mode) {
+            const values = inputCache[mode] || [];
+            document.querySelectorAll(`#${mode}Inputs textarea`).forEach((t, i) => t.value = values[i] || '');
+        }
+
+        function validateInput(input, mode) {
+            let isValid = true;
+            const value = input.value.trim();
+            
+            if (mode === 'vertical' && /[\n\s]/.test(value)) {
+                showError(input, '纵向模式不能使用换行或空格');
+                isValid = false;
+            }
+            if (mode === 'horizontal' && /[,，]/.test(value)) {
+                showError(input, '横向模式不能使用逗号');
+                isValid = false;
+            }
+
+            const words = mode === 'vertical' ? 
+                value.split(/[,，]/).filter(Boolean) : 
+                value.split('\n').filter(Boolean);
+            if (words.some(w => w.length > 10)) {
+                showError(input, '单个词长度不能超过10个字符');
+                isValid = false;
+            }
+
+            input.classList.toggle('input-error', !isValid);
+            validateAll();
+        }
+
+        function validateAll() {
+            const validInputs = Array.from(document.querySelectorAll('.input-box'))
+                .filter(t => t.value.trim() && !t.classList.contains('input-error'));
+            
+            const generateBtn = document.getElementById('generateBtn');
+            if (validInputs.length >= 2) {
+                document.getElementById('globalError').style.display = 'none';
+                generateBtn.disabled = false;
+                return true;
+            } else {
+                document.getElementById('globalError').textContent = '至少需要填写两个有效输入框';
+                document.getElementById('globalError').style.display = 'block';
+                generateBtn.disabled = true;
+                return false;
+            }
+        }
+
+        function handleGenerate() {
+            if (!validateAll()) return;
+            
+            const inputs = Array.from(document.querySelectorAll('.input-box:not(.input-error)'))
+                .filter(t => t.value.trim());
+            
+            const allWords = inputs.map(t => 
+                currentMode === 'vertical' ? 
+                t.value.split(/[,，]/).filter(Boolean) : 
+                t.value.split('\n').filter(Boolean)
+            );
+
+            const results = cartesianProduct(allWords)
+                .map(arr => arr.join(' '))
+                .filter((v, i, a) => a.indexOf(v) === i);
+
+            document.getElementById('resultOutput').textContent = results.join('\n');
+            document.querySelector('.result-area').style.display = 'block';
+        }
+
+        function cartesianProduct(arr) {
+            return arr.reduce((a, b) => 
+                a.flatMap(x => b.map(y => [...x, y])), 
+                [[]]
+            );
+        }
+
+        function copyResults() {
+            navigator.clipboard.writeText(document.getElementById('resultOutput').textContent)
+                .then(() => alert('复制成功！'));
+        }
+
+        function showError(input, message) {
+            const errorDiv = input.nextElementSibling;
+            if (errorDiv?.classList.contains('error-message')) {
+                errorDiv.textContent = message;
+                errorDiv.style.display = 'block';
+            }
+        }
+    </script>
+</body>
+</html>
